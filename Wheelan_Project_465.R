@@ -255,7 +255,9 @@ Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 # white) includes zero in its 95% BCI, it is still meaningful, so I kept 
 # it in the model.
 
-# I include a 
+# I use 3 chains to get a better sense of convergence. The Gelman diagnostic
+# gives us values relatively close to 1. Overall, the chain plots and the 
+# other metrics suggest that convergence is reasonable.
 
 #====================================================================================================
 
@@ -267,8 +269,31 @@ samplesPlot(samples[,c(1:3, 21)])
 effectiveSize(samples[,c(1:3, 21)])
 samplesSummary(samples[,c(1:3, 21)])
 
+
+# Using multiple chains to assess convergence better
+initsFunction <- function() {
+  list(b0 = rnorm(0, 100),
+       b_ed = rnorm(0, 100),
+       b_race = rnorm(0,100),
+       sigma_tract = runif(0, 10000))
+}
+samplesList <- runMCMC(Cmcmc, 20000, nchains = 3, nburnin = 2000, inits = initsFunction, samplesAsCodaMCMC = T)
+
+chainsPlot(samplesList[,c(1:3,21)])
+gelman.diag(samplesList[,c(1:3,21)])
+
 #====================================================================================================
-# (9) Geo Plots (requires shape file)
+# (9) Conclusions and Plots (requires shape file)
+
+# Overall, we can say that tracts with more diversity (a smaller 
+# white proportion of the population) are more likely to vote for Biden,
+# although we should note that 0 is in the 95% BCI. An increase in 
+# educational attainment is associated with a statistically significant
+# increase in the proportion of Biden votes.
+
+# We can look at the relative weight of the effects graphically using the
+# plot code below.
+
 #====================================================================================================
 
 # storing the posterior means
